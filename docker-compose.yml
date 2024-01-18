@@ -1,34 +1,59 @@
 version: "3.8"
 
 services:
-  symfony:
+  composer:
     build:
-      context: ./docker/symfony
+      context: ./docker/composer
     volumes:
       - ./src:/var/www/html
-    depends_on:
-      - database
+    # networks:
+      # - internal
+      
+#   database:
+#     image: postgres:${POSTGRES_VERSION:-13}-alpine
+#     environment:
+#       POSTGRES_DB: ${POSTGRES_DB:-app}
+#       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMe}
+#       POSTGRES_USER: ${POSTGRES_USER:-symfony}
+#     volumes:
+#       - db_data:/var/lib/postgresql/data:rw
 
-  database:
-    build:
-      context: ./docker/postgres
-    environment:
-      POSTGRES_DB: nom_de_la_base
-      POSTGRES_USER: utilisateur
-      POSTGRES_PASSWORD: mot_de_passe
-    volumes:
-      - db_data:/var/lib/postgresql/data
+  # symfony:
+  #   build:
+  #     context: ./docker/symfony
+  #   volumes:
+  #     - ./src:/var/www/html
+  #   depends_on:
+  #     - composer
+  #     # - database
+  #   environment:
+  #     APP_ENV: dev
+  #     APP_DEBUG: 1
+      
+#   adminer:
+#     image: adminer
+#     depends_on:
+#       - database
+#     ports:
+#       - "8080:8080"
 
-  adminer:
-    build:
-      context: ./docker/postgres
-    depends_on:
-      - database
-    ports:
-      - "8080:8080"
+#   caddy:
+#     image: caddy:2.4.3-alpine
+#     ports:
+#       - "80:80"
+#     volumes:
+#       - ./Caddyfile:/etc/caddy/Caddyfile
+#       - ./src:/srv
+#     depends_on:
+#       - symfony
+#     environment:
+#       SERVER_NAME: ${SERVER_NAME:-localhost, caddy:80}
+#       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeMe!}
+#       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeMe!}
+#     restart: unless-stopped
 
-volumes:
-  db_data:
+# volumes:
+#   db_data:
 
 networks:
   default:
