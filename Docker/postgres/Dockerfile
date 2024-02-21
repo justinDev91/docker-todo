@@ -1,2 +1,42 @@
-# Dockerfile pour PostgreSQL
-FROM alpine
+# # Use Alpine as the base image
+FROM alpine:latest
+
+# # Install PostgreSQL
+RUN apk add --no-cache postgresql postgresql-client
+
+# # Ensure the postgres group and user exist
+RUN set -ex; \
+    addgroup -S postgres 2>/dev/null || true; \
+    adduser -S postgres -G postgres 2>/dev/null || true;
+
+# # Ensure the directories where PostgreSQL expects to write/read data exist and are owned by postgres
+RUN mkdir -p /var/lib/postgresql/data /run/postgresql && \
+    chown -R postgres:postgres /var/lib/postgresql/data /run/postgresql
+
+# # Change to the postgres user
+# USER postgres
+
+# # Initialize the database
+# RUN initdb -D /var/lib/postgresql/data
+
+# # Expose the PostgreSQL port
+# EXPOSE 5432
+
+# # Modify the PostgreSQL configuration
+# RUN echo "host all all 0.0.0.0/0 md5" >> /var/lib/postgresql/data/pg_hba.conf
+# RUN echo "listen_addresses='*'" >> /var/lib/postgresql/data/postgresql.conf
+
+USER postgres
+
+RUN chmod 0700 /var/lib/postgresql/data &&\
+    initdb /var/lib/postgresql/data &&\
+    echo "host all  all    0.0.0.0/0  md5" >> /var/lib/postgresql/data/pg_hba.conf &&\
+    echo "listen_addresses='*'" >> /var/lib/postgresql/data/postgresql.conf &&\
+    pg_ctl start &&\
+    psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'main'" | grep -q 1 || psql -U postgres -c "CREATE DATABASE main" &&\
+    psql -c "ALTER USER postgres WITH ENCRYPTED PASSWORD 'mysecurepassword';"
+
+EXPOSE 5432
+
+# # Start PostgreSQL
+CMD ["postgres", "-D", "/var/lib/postgresql/data"]
