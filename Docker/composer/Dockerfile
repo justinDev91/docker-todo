@@ -1,9 +1,10 @@
-# Install PHP
+# Use Alpine Linux as the base image
 FROM alpine AS main_php
 
+# Set metadata for the image
 LABEL maintainer="Justin Katasi <justinkatasi.dev@gmail.com>"
 
-# persistent / runtime deps
+# Install persistent/runtime dependencies
 RUN apk add --no-cache \
   acl \
   fcgi \
@@ -13,8 +14,6 @@ RUN apk add --no-cache \
   linux-headers \
   npm \
   ;
-
-#PHP and lib
 RUN apk --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/main add \
   icu-libs \
   && apk --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/community add \
@@ -47,7 +46,10 @@ RUN apk --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/main 
   php81-sodium \
   php81-tokenizer \
   php81-pecl-apcu \
-  && ln -sf /usr/bin/php81 /usr/bin/php
+  php81-soap \
+  ;
+
+RUN ln -sf /usr/bin/php81 /usr/bin/php
 
 ADD rootfs /
 
@@ -57,9 +59,9 @@ ENTRYPOINT ["/sbin/tini", "--"]
 
 CMD ["/usr/sbin/php-fpm81", "-R", "--nodaemonize"]
 
-EXPOSE 9000
-
+# Set the working directory
 WORKDIR /app
+
 
 # Install Composer
 FROM main_php AS dev_composer
@@ -86,13 +88,6 @@ RUN apk add -U --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge
 
 ADD devfs /
 
-RUN echo "Composer installed successfully"
-
-CMD ["supervisord", "--nodaemon", "--configuration", "/etc/supervisord.conf"]
-
-EXPOSE 22 9003
-
-
 # Install Symfony
 FROM dev_composer AS symfony_installer
 
@@ -104,22 +99,25 @@ RUN composer create-project symfony/skeleton .
 
 # Install required bundles
 RUN composer require symfony/debug-bundle --dev
+RUN composer require symfony/maker-bundle --dev
+RUN composer require symfony/orm-pack
+RUN composer require symfony/twig-bundle
+RUN composer require symfony/security-bundle
+RUN composer require symfony/webpack-encore-bundle --dev
+RUN composer require orm-fixtures --dev
 
-# Installer symfony cli
+# Installer php extension pour symfony
 RUN apk add --no-cache \
+  postgresql-dev \
+  libxml2-dev \
+  php81-pdo_pgsql \
+  php81-simplexml \
+  php81-posix \
+  php81-pdo \
   bash \
   curl \
   && curl -sS https://get.symfony.com/cli/installer | bash \
   && mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
-
-# Install PDO and necessary dependencies
-# RUN apk --no-cache add \
-#   $PHPIZE_DEPS \
-#   libxml2-dev \
-#   && docker-php-ext-install pdo_mysql \
-#   && docker-php-ext-install simplexml
-
-RUN php bin/console cache:clear
 
 # Expose the Symfony application port
 EXPOSE 8000
