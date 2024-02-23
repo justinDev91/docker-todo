@@ -1,5 +1,11 @@
 # Install Composer
-FROM composer:latest  AS dev_composer
+FROM justinkat/custom-composer:v1  AS dev_symfony
+
+# Delete directory if it exists
+RUN rm -rf /var/www/html
+
+# Symfony project dir path
+WORKDIR /var/www/html
 
 # Creat symfony project
 RUN composer create-project symfony/skeleton .

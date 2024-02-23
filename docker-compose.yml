@@ -4,19 +4,28 @@ services:
   custom_composer:
     build:
       context: ./docker/composer
-    depends_on:
-      - database
-    volumes:
-     - ./src:/var/www/html
-    ports:
-      - 8000:8000
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-symfony}:${POSTGRES_PASSWORD:-ChangeMe}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-13}
-    networks:
-       - justice
     restart: unless-stopped
   
-  # Make custom image
+  # TODO: Make custom image
+  # database:
+  #   build:
+  #       context: ./docker/postgres
+  #   # image: my-custom-postgres
+  #   # container_name: my-postgres-container
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     # - POSTGRES_USER=${POSTGRES_USER:-postgres} # A modifier pour inclure le .env
+  #     # - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-test} # A modifier pour inclure le .env
+  #     POSTGRES_DB: ${POSTGRES_DB:-main}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mysecurepassword}
+  #     POSTGRES_USER: ${POSTGRES_USER:-postgres}
+  #   volumes:
+  #     - db_data:/var/lib/postgresql/data
+  #   networks:
+  #     - justice
+  #   restart: unless-stopped
+
   database:
     image: postgres:${POSTGRES_VERSION:-13}-alpine
     environment:
@@ -29,26 +38,25 @@ services:
       - justice
     restart: unless-stopped
 
-  # custom_symfony:
-  #   build:
-  #     context: ./docker/symfony
-  #   depends_on:
-  #     - custom_composer
-      # - database
-    # environment:
-    #   APP_ENV: dev
-    #   APP_DEBUG: 1
-    # volumes:
-    #   - symfony_data:/symfony-todo/
-    # ports:
-    #   # HTTP
-    #   # TODO: Port composer et non symfony
-    #   - 8000:8000
-    #   # Composer ne partage pas de réseau
-    # networks:
-    #    - justice
-    # restart: unless-stopped
-      
+  custom_symfony:
+    build:
+      context: ./docker/symfony
+    depends_on:
+      - custom_composer
+      - database
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-symfony}:${POSTGRES_PASSWORD:-ChangeMe}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-13}
+    # APP_ENV: dev
+    # APP_DEBUG: 1
+    volumes:
+      - ./src:/var/www/html
+    ports:
+      - 8000:8000
+    networks:
+      - justice
+    restart: unless-stopped
+    
+  # TODO: Make custom
   # adminer:
   #   image: adminer
   #   depends_on:
@@ -58,24 +66,8 @@ services:
   #   networks:
   #     - justice
 
-#   caddy:
-#     image: caddy:2.4.3-alpine
-#     ports:
-#       - "80:80"
-#     volumes:
-#       - ./Caddyfile:/etc/caddy/Caddyfile
-#       - ./src:/srv
-#     depends_on:
-#       - symfony
-#     environment:
-#       SERVER_NAME: ${SERVER_NAME:-localhost, caddy:80}
-#       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeMe!}
-#       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeMe!}
-#     restart: unless-stopped
-
 volumes:
   db_data:
-  symfony_data:
 
 networks:
    justice:
