@@ -4,6 +4,9 @@ FROM alpine AS main_php
 # Set metadata for the image
 LABEL maintainer="Justin Katasi <justinkatasi.dev@gmail.com>"
 
+# Set the working directory
+WORKDIR /app
+
 # Install persistent/runtime dependencies
 RUN apk add --no-cache \
   acl \
@@ -59,10 +62,6 @@ ENTRYPOINT ["/sbin/tini", "--"]
 
 CMD ["/usr/sbin/php-fpm81", "-R", "--nodaemonize"]
 
-# Set the working directory
-WORKDIR /app
-
-
 # Install Composer
 FROM main_php AS dev_composer
 
@@ -88,23 +87,14 @@ RUN apk add -U --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge
 
 ADD devfs /
 
-# Install Symfony
-FROM dev_composer AS symfony_installer
+# Delete directory if it exists
+RUN rm -rf /var/www/html
 
 # Symfony project dir path
-WORKDIR /symfony-todo
+WORKDIR /var/www/html
 
 # Creat symfony project
 RUN composer create-project symfony/skeleton .
-
-# Install required bundles
-RUN composer require symfony/debug-bundle --dev
-RUN composer require symfony/maker-bundle --dev
-RUN composer require symfony/orm-pack
-RUN composer require symfony/twig-bundle
-RUN composer require symfony/security-bundle
-RUN composer require symfony/webpack-encore-bundle --dev
-RUN composer require orm-fixtures --dev
 
 # Installer php extension pour symfony
 RUN apk add --no-cache \
@@ -119,8 +109,6 @@ RUN apk add --no-cache \
   && curl -sS https://get.symfony.com/cli/installer | bash \
   && mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
 
-# Expose the Symfony application port
 EXPOSE 8000
 
-# Run Symfony
-CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
+CMD ["php", "-S", "0.0.0.0:8000", "-t", "/var/www/html/public"]

@@ -1,50 +1,62 @@
 version: "3.8"
 
 services:
-  composer:
+  custom_composer:
     build:
       context: ./docker/composer
+    depends_on:
+      - database
     volumes:
-      - ./src:/var/www/html
+     - ./src:/var/www/html
     ports:
-      # HTTP
-      - target: 8000
-        published: ${HTTP_PORT:-8000}
-        protocol: tcp
-      # HTTPS
-      - target: 443
-        published: ${HTTPS_PORT:-443}
-        protocol: tcp
-    # networks:
-      # - internal
-      
-#   database:
-#     image: postgres:${POSTGRES_VERSION:-13}-alpine
-#     environment:
-#       POSTGRES_DB: ${POSTGRES_DB:-app}
-#       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMe}
-#       POSTGRES_USER: ${POSTGRES_USER:-symfony}
-#     volumes:
-#       - db_data:/var/lib/postgresql/data:rw
+      - 8000:8000
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-symfony}:${POSTGRES_PASSWORD:-ChangeMe}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-13}
+    networks:
+       - justice
+    restart: unless-stopped
+  
+  # Make custom image
+  database:
+    image: postgres:${POSTGRES_VERSION:-13}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMe}
+      POSTGRES_USER: ${POSTGRES_USER:-symfony}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - justice
+    restart: unless-stopped
 
-  # symfony:
+  # custom_symfony:
   #   build:
   #     context: ./docker/symfony
-  #   volumes:
-  #     - ./src:/var/www/html
   #   depends_on:
-  #     - composer
-  #     # - database
-  #   environment:
-  #     APP_ENV: dev
-  #     APP_DEBUG: 1
+  #     - custom_composer
+      # - database
+    # environment:
+    #   APP_ENV: dev
+    #   APP_DEBUG: 1
+    # volumes:
+    #   - symfony_data:/symfony-todo/
+    # ports:
+    #   # HTTP
+    #   # TODO: Port composer et non symfony
+    #   - 8000:8000
+    #   # Composer ne partage pas de réseau
+    # networks:
+    #    - justice
+    # restart: unless-stopped
       
-#   adminer:
-#     image: adminer
-#     depends_on:
-#       - database
-#     ports:
-#       - "8080:8080"
+  # adminer:
+  #   image: adminer
+  #   depends_on:
+  #     - database
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - justice
 
 #   caddy:
 #     image: caddy:2.4.3-alpine
@@ -61,9 +73,10 @@ services:
 #       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeMe!}
 #     restart: unless-stopped
 
-# volumes:
-#   db_data:
+volumes:
+  db_data:
+  symfony_data:
 
 networks:
-  default:
+   justice:
     driver: bridge
