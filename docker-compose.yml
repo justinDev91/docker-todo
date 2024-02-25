@@ -36,8 +36,7 @@ services:
       - justice
     restart: unless-stopped
     
-  # TODO: Make custom
-  custom_adminer:
+  adminer:
     build:
       context: ./Docker/adminer
     depends_on:
@@ -46,7 +45,7 @@ services:
       - "8080:8080"
     networks:
       - justice
-
+  
 volumes:
   db_data:
 
