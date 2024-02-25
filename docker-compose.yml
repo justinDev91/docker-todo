@@ -1,17 +1,54 @@
 version: "3.8"
+
 services:
-  database:
-    image: my-custom-postgres
-    container_name: my-postgres-container
+  custom_composer:
+    build:
+      context: ./docker/composer
+    restart: unless-stopped
+  
+  custom_postgres:
+    build:
+        context: ./docker/postgres
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-postgres} # A modifier pour inclure le .env
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-test} # A modifier pour inclure le .env
+      POSTGRES_DB: ${POSTGRES_DB:-main}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mysecurepassword}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - justice
+
+  custom_symfony:
+    build:
+      context: ./docker/symfony
+    depends_on:
+      - custom_composer
+      - custom_postgres
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-mysecurepassword}@custom_postgres:5432/${POSTGRES_DB:-main}?serverVersion=${POSTGRES_VERSION:-15.6}
+    volumes:
+      - ./src:/var/www/html
+    ports:
+      - 8000:8000
+    networks:
+      - justice
+    restart: unless-stopped
+    
+  # TODO: Make custom
+  adminer:
+    image: adminer
+    depends_on:
+      - custom_postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - justice
 
 volumes:
-  pgdata: # Persister les données
+  db_data:
 
 networks:
-  my-network:
-    driver: bridge # Pour essayer de ce connecter a la database adminer avec comme hôte database
+   justice:
+    driver: bridge
