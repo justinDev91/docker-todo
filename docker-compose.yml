@@ -3,12 +3,12 @@ version: "3.8"
 services:
   custom_composer:
     build:
-      context: ./docker/composer
+      context: ./Docker/composer
     restart: unless-stopped
   
   custom_postgres:
     build:
-        context: ./docker/postgres
+        context: ./Docker/postgres
     ports:
       - "5432:5432"
     environment:
@@ -22,7 +22,7 @@ services:
 
   custom_symfony:
     build:
-      context: ./docker/symfony
+      context: ./Docker/symfony
     depends_on:
       - custom_composer
       - custom_postgres
@@ -37,8 +37,9 @@ services:
     restart: unless-stopped
     
   # TODO: Make custom
-  adminer:
-    image: adminer
+  custom_adminer:
+    build:
+      context: ./Docker/adminer
     depends_on:
       - custom_postgres
     ports:
