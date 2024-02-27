@@ -4,46 +4,28 @@ FROM alpine:latest
 LABEL maintainer="Lucie GODARD <lucie.godard1704@gmail.com>"
 
 # Set environment variables
+ENV PHP_VERSION=81
 ENV ADMINER_VERSION=4.8.1
 ENV ADMINER_DOWNLOAD_URL=https://www.adminer.org/static/download/$%7BADMINER_VERSION%7D/adminer-$%7BADMINER_VERSION%7D.php
 
-# Install PHP 81.1 and other necessary packages
+# Install PHP and necessary extensions for Adminer
 RUN apk add --no-cache \
-  php81 \
-  php81-session \
-  php81-mbstring \
-  php81-mysqli \
-  php81-json \
-  php81-openssl \
-  php81-zlib \
-  php81-curl \
-  php81-dom \
-  php81-pdo \
-  php81-pdo_mysql \
-  php81-simplexml \
-  php81-tokenizer \
-  php81-xmlwriter \
-  php81-xml \
-  php81-fileinfo \
-  php81-iconv \
-  php81-xmlreader \
-  php81-phar \
-  php81-intl \
-  php81-ctype \
-  php81-opcache \
-  php81-gd \
-  php81-bcmath \
-  php81-exif \
-  php81-pcntl \
-  php81-posix \
-  php81-sockets \
-  php81-sysvshm \
-  php81-sysvmsg \
-  php81-sysvsem \
-  php81-shmop \
-  php81-zip \
-  php81-pgsql \
-  php81-pdo_pgsql \
+  php${PHP_VERSION} \
+  php${PHP_VERSION}-session \
+  php${PHP_VERSION}-mysqli \
+  php${PHP_VERSION}-pgsql \
+  php${PHP_VERSION}-pdo_pgsql \
+  php${PHP_VERSION}-json \
+  php${PHP_VERSION}-openssl \
+  php${PHP_VERSION}-curl \
+  php${PHP_VERSION}-dom \
+  php${PHP_VERSION}-pdo_mysql \
+  php${PHP_VERSION}-simplexml \
+  php${PHP_VERSION}-tokenizer \
+  php${PHP_VERSION}-xmlwriter \
+  php${PHP_VERSION}-xml \
+  php${PHP_VERSION}-phar \
+  php${PHP_VERSION}-zip \
   curl
 
 RUN ln -sf /usr/bin/php81 /usr/bin/php
@@ -52,8 +34,11 @@ RUN ln -sf /usr/bin/php81 /usr/bin/php
 RUN mkdir -p /var/www/html \
   && curl -L ${ADMINER_DOWNLOAD_URL} -o /var/www/html/adminer.php
 
+# Make a symbolic link for PHP
+RUN ln -sf /usr/bin/php${PHP_VERSION} /usr/bin/php
+
 # Expose port
 EXPOSE 8080
 
-# Command to run the container
+# Command to run Adminer
 CMD ["php", "-S", "0.0.0.0:8080", "/var/www/html/adminer.php"]
