@@ -1,13 +1,16 @@
 # Use Alpine Linux as the base image
-FROM alpine AS main_php
+FROM alpine:latest AS php
 
 # Set metadata for the image
 LABEL maintainer="Justin Katasi <justinkatasi.dev@gmail.com>"
 
+# Set environment variables
+ENV PHP_VERSION=81
+
 # Set the working directory
 WORKDIR /app
 
-# Install persistent/runtime dependencies
+# Install php and dependencies
 RUN apk add --no-cache \
   acl \
   fcgi \
@@ -17,78 +20,47 @@ RUN apk add --no-cache \
   linux-headers \
   npm \
   ;
+
+# Install additional dependencies from different repositories
 RUN apk --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/main add \
   icu-libs \
   && apk --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/community add \
   libavif \
   && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/ --allow-untrusted gnu-libiconv \
   tini \
-  php81 \
-  php81-dev \
-  php81-common \
-  php81-gd \
-  php81-xmlreader \
-  php81-bcmath \
-  php81-ctype \
-  php81-curl \
-  php81-exif \
-  php81-iconv \
-  php81-intl \
-  php81-mbstring \
-  php81-opcache \
-  php81-openssl \
-  php81-pcntl \
-  php81-phar \
-  php81-session \
-  php81-xml \
-  php81-xsl \
-  php81-zip \
-  php81-zlib \
-  php81-dom \
-  php81-fpm \
-  php81-sodium \
-  php81-tokenizer \
-  php81-pecl-apcu \
-  php81-soap \
+  php${PHP_VERSION} \
+  php${PHP_VERSION}-common \
+  php${PHP_VERSION}-iconv \
+  php${PHP_VERSION}-mbstring \
+  php${PHP_VERSION}-openssl \
+  php${PHP_VERSION}-phar \
+  php${PHP_VERSION}-pecl-apcu \
   ;
 
-RUN ln -sf /usr/bin/php81 /usr/bin/php
+# Installer Composer depuis php
+FROM php AS composer
 
-ADD rootfs /
-
-RUN echo "PHP installed successfully"
-
-ENTRYPOINT ["/sbin/tini", "--"]
-
-CMD ["/usr/sbin/php-fpm81", "-R", "--nodaemonize"]
-
-# Install Composer
-FROM main_php AS dev_composer
-
+# Define build arguments, default user and password for SSH
 ARG USER=root
 ARG PASSWORD=root
 
-RUN apk add -U --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/   \
-  php81-pear \
+# Install necessary packages for Composer setup
+RUN apk add -U --no-cache php${PHP_VERSION}-pear \
+  php${PHP_VERSION}-pear \
   openssh \
   supervisor \
   autoconf \
-  git \
   curl \
-  wget \
   make \
   zip \
-  php81-xdebug \
+  php${PHP_VERSION}-xdebug \
   && rm -rf /var/cache/apk/* \
+  # Permit root login via SSH and set the default password
   && sed -i s/#PermitRootLogin.*/PermitRootLogin\ yes/ /etc/ssh/sshd_config \
   && echo "${USER}:${PASSWORD}" | chpasswd \
+  # Generate SSH keys
   && ssh-keygen -A \
   && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
-ADD devfs /
-
-# Delete directory if it exists
-RUN rm -rf /var/www/html
-
-# Symfony project dir path
-WORKDIR /var/www/html
+# Make a symbolic link for PHP 8.1
+RUN ln -sf /usr/bin/php${PHP_VERSION} /usr/bin/php

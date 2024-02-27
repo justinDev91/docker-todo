@@ -1,31 +1,33 @@
-# # Use Alpine as the base image
+# Use Alpine as the base image
 FROM alpine:latest
 
-# # Install PostgreSQL
-RUN apk add --no-cache postgresql postgresql-client
+# ARGs to accept database name, user, and password during build time
+ENV POSTGRES_DB=main
+ENV POSTGRES_PASSWORD=mysecurepassword
+ENV POSTGRES_USER=postgres
 
-# # Ensure the postgres group and user exist
+# Ensure the postgres group and user exist
 RUN set -ex; \
-  addgroup -S postgres 2>/dev/null || true; \
-  adduser -S postgres -G postgres 2>/dev/null || true;
+  addgroup -S ${POSTGRES_USER} 2>/dev/null || true; \
+  adduser -S ${POSTGRES_USER} -G ${POSTGRES_USER} 2>/dev/null || true;
 
-# # Ensure the directories where PostgreSQL expects to write/read data exist and are owned by postgres
+# Ensure the directories where PostgreSQL expects to write/read data exist and are owned by postgres
 RUN mkdir -p /var/lib/postgresql/data /run/postgresql && \
-  chown -R postgres:postgres /var/lib/postgresql/data /run/postgresql
+  chown -R ${POSTGRES_USER}:${POSTGRES_USER} /var/lib/postgresql/data /run/postgresql
 
-USER postgres
-# Set the PGDATA environment variable to specify the location of the data directory
-ENV PGDATA /var/lib/postgresql/data
+# Switch to the given user before starting PostgreSQL
+USER ${POSTGRES_USER}
 
+# Initialize PostgreSQL data directory, create database, and set password
 RUN chmod 0700 /var/lib/postgresql/data &&\
   initdb /var/lib/postgresql/data &&\
   echo "host all  all    0.0.0.0/0  md5" >> /var/lib/postgresql/data/pg_hba.conf &&\
   echo "listen_addresses='*'" >> /var/lib/postgresql/data/postgresql.conf &&\
-  pg_ctl start -D /var/lib/postgresql/data &&\
-  psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'main'" | grep -q 1 || psql -U postgres -c "CREATE DATABASE main" &&\
-  psql -c "ALTER USER postgres WITH ENCRYPTED PASSWORD 'mysecurepassword';"
+  pg_ctl start -D /var/lib/postgresql/data && \
+  psql -U ${POSTGRES_USER} -tc "SELECT 1 FROM pg_database WHERE datname = '${POSTGRES_DB}'" | grep -q 1 || psql -U ${POSTGRES_USER} -c "CREATE DATABASE ${POSTGRES_DB}" &&\
+  psql -c "ALTER USER ${POSTGRES_USER} WITH ENCRYPTED PASSWORD '${POSTGRES_PASSWORD}';"
 
 EXPOSE 5432
 
-# # Start PostgreSQL
+# Start PostgreSQL
 CMD ["postgres", "-D", "/var/lib/postgresql/data"]

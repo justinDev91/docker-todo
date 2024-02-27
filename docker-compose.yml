@@ -36,7 +36,7 @@ services:
       - justice
     restart: unless-stopped
     
-  adminer:
+  custom_adminer:
     build:
       context: ./Docker/adminer
     depends_on:
