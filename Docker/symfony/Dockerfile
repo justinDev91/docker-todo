@@ -19,6 +19,7 @@ RUN apk add --no-cache \
   php81-posix \
   php81-pdo \
   bash \
+  php-ctype \
   curl \
   && curl -sS https://get.symfony.com/cli/installer | bash \
   && mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
