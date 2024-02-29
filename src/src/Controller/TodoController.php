@@ -15,10 +15,15 @@ use Symfony\Component\Routing\Attribute\Route;
 class TodoController extends AbstractController
 {
     #[Route('/', name: 'app_todo_index', methods: ['GET'])]
-    public function index(TodoRepository $todoRepository): Response
+    public function index(TodoRepository $todoRepository, Request $request): Response
     {
+        $todo = new Todo();
+        $form = $this->createForm(TodoType::class, $todo);
+        $form->handleRequest($request);
+
         return $this->render('todo/index.html.twig', [
             'todos' => $todoRepository->findAll(),
+            'form' => $form,
         ]);
     }
 

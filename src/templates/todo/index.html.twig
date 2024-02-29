@@ -3,37 +3,41 @@
 {% block title %}Todo index{% endblock %}
 
 {% block body %}
-    <h1>Todo index</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for todo in todos %}
-            <tr>
-                <td>{{ todo.id }}</td>
-                <td>{{ todo.title }}</td>
-                <td>{{ todo.description }}</td>
-                <td>{{ todo.status }}</td>
-                <td>
-                    <a href="{{ path('app_todo_show', {'id': todo.id}) }}">show</a>
-                    <a href="{{ path('app_todo_edit', {'id': todo.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
 
-    <a href="{{ path('app_todo_new') }}">Create new</a>
+<div class="flex items-center justify-center w-screen h-screen font-medium">
+	<div class="flex flex-grow flex-col items-center justify-center h-full text-gray-600 bg-gray-100">
+		<div class="max-w-full p-8 bg-white rounded-lg shadow-lg w-96">
+			<div class="flex items-center mb-6">
+				<svg class="h-8 w-8 text-indigo-500 stroke-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+				</svg>
+				<h4 class="font-bold ml-3 text-2xl">To do</h4>
+			</div>	
+
+            {# list to dos #}
+			{% for todo in todos %}
+                <div>
+                    <input class="hidden peer" type="checkbox" id="task_{{todo.id}}">
+                    <label class="flex items-center font-semibold h-10 px-2 rounded cursor-pointer hover:bg-gray-100 peer-checked:line-through peer-checked:text-gray-400" for="task_{{todo.id}}">
+                        <span class="flex items-center justify-center w-5 h-5 text-transparent border-2 border-gray-300 rounded-full">
+                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                        <h3 class="text-xl ml-4">{{ todo.title}}</h3>
+                    </label>	
+                </div>
+            {% else %}
+                <tr>
+                    <td colspan="5">no records found</td>
+                </tr>
+
+            {% endfor %}
+            {# add new todo item #}
+            {{ include('todo/_form.html.twig')}}	
+            </div>
+        <p class="text-center text-lg font-bold absolute bottom-0 mb-10">Stéphan GUEORGUIEFF &nbsp;&nbsp;&nbsp;&nbsp; Justin KATASI &nbsp;&nbsp;&nbsp;&nbsp; Lucie GODARD</p>
+	</div>
+</div>    
 {% endblock %}

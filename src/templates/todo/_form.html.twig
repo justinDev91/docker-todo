@@ -1,4 +1,16 @@
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+{{ form_start(form,{ 
+    action:path('app_todo_new'), 
+    attr: { class: "flex items-center w-full text-gray-700 hover:bg-gray-100 text-xl font-normal py-3 px-4 mt-6 rounded" }
+})}}
+    {{ form_row(form.title, {
+        attr: {
+            placeholder: "Nouvelle tâche",
+            class: 'bg-transparent focus:outline-none'},
+        label: false
+    }) }}
+    <button type="submit" class="ml-auto">
+        <svg class="w-4 h-4 text-indigo-500" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+    </button>
 {{ form_end(form) }}

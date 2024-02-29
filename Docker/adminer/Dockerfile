@@ -46,6 +46,8 @@ RUN apk add --no-cache \
   php81-pdo_pgsql \
   curl
 
+RUN ln -sf /usr/bin/php81 /usr/bin/php
+
 # Download Adminer
 RUN mkdir -p /var/www/html \
   && curl -L ${ADMINER_DOWNLOAD_URL} -o /var/www/html/adminer.php
