@@ -1,5 +1,5 @@
 # Install symfony from custom_composer image
-FROM justinkat/custom-composer:v7  AS symfony
+FROM justinkat/custom-composer:latest  AS symfony
 
 # Set environment variables
 ENV PHP_VERSION=81

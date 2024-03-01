@@ -6,6 +6,9 @@ ENV POSTGRES_DB=main
 ENV POSTGRES_PASSWORD=mysecurepassword
 ENV POSTGRES_USER=postgres
 
+# # Install PostgreSQL
+RUN apk add --no-cache postgresql postgresql-client
+
 # Ensure the postgres group and user exist
 RUN set -ex; \
   addgroup -S ${POSTGRES_USER} 2>/dev/null || true; \

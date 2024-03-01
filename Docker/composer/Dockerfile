@@ -5,12 +5,14 @@ FROM alpine:latest AS php
 LABEL maintainer="Justin Katasi <justinkatasi.dev@gmail.com>"
 
 # Set environment variables
+ARG USER=root
+ARG PASSWORD=root
 ENV PHP_VERSION=81
 
 # Set the working directory
 WORKDIR /app
 
-# Install php and dependencies
+# Install system dependencies
 RUN apk add --no-cache \
   acl \
   fcgi \
@@ -35,14 +37,27 @@ RUN apk --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/main 
   php${PHP_VERSION}-openssl \
   php${PHP_VERSION}-phar \
   php${PHP_VERSION}-pecl-apcu \
+  php${PHP_VERSION}-tokenizer \
+  php${PHP_VERSION}-dom \
+  php${PHP_VERSION}-gd \
+  php${PHP_VERSION}-xmlreader \
+  php${PHP_VERSION}-bcmath \
+  php${PHP_VERSION}-ctype \
+  php${PHP_VERSION}-curl \
+  php${PHP_VERSION}-exif \
+  php${PHP_VERSION}-intl \
+  php${PHP_VERSION}-opcache \
+  php${PHP_VERSION}-pcntl \
+  php${PHP_VERSION}-session \
+  php${PHP_VERSION}-xml \
+  php${PHP_VERSION}-xsl \
+  php${PHP_VERSION}-zip \
+  php${PHP_VERSION}-zlib \
+  php${PHP_VERSION}-sodium \
   ;
 
 # Installer Composer depuis php
 FROM php AS composer
-
-# Define build arguments, default user and password for SSH
-ARG USER=root
-ARG PASSWORD=root
 
 # Install necessary packages for Composer setup
 RUN apk add -U --no-cache php${PHP_VERSION}-pear \
