@@ -10,8 +10,6 @@ class AppFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        // $product = new Product();
-        // $manager->persist($product);
 
         $todo1 = new Todo;
         $todo1->setTitle('Faire un gateau');
