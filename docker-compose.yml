@@ -2,8 +2,7 @@ version: "3.8"
 
 services:
   custom_composer:
-    build:
-      context: ./Docker/composer
+    image: justinkat/custom-composer:latest
     restart: unless-stopped
   
   custom_postgres:
@@ -21,8 +20,7 @@ services:
       - justice
 
   custom_symfony:
-    build:
-      context: ./Docker/symfony
+    image: justinkat/custom-symfony:latest
     depends_on:
       - custom_composer
       - custom_postgres
@@ -37,8 +35,7 @@ services:
     restart: unless-stopped
     
   custom_adminer:
-    build:
-      context: ./Docker/adminer
+    image: lucie1704/custom_adminer:latest
     depends_on:
       - custom_postgres
     ports:
